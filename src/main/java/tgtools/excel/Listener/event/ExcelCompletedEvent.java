@@ -1,6 +1,6 @@
 package tgtools.excel.Listener.event;
 
-import tgtools.data.DataTable;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import tgtools.interfaces.Event;
 
 import java.util.List;
@@ -12,31 +12,22 @@ import java.util.List;
  * 时  间：10:24
  */
 public class ExcelCompletedEvent extends Event {
-    private DataTable m_Table;
-    private List<DataTable> m_Tables;
-    private Object Workbook;
+    private List<ArrayNode> mDatas;
+    private Object mWorkbook;
 
-    public DataTable getTable() {
-        return m_Table;
+    public List<ArrayNode> getDatas() {
+        return mDatas;
     }
 
-    public void setTable(DataTable p_Table) {
-        m_Table = p_Table;
-    }
-
-    public List<DataTable> getTables() {
-        return m_Tables;
-    }
-
-    public void setTables(List<DataTable> p_Tables) {
-        m_Tables = p_Tables;
+    public void setDatas(List<ArrayNode> pDatas) {
+        mDatas = pDatas;
     }
 
     public Object getWorkbook() {
-        return Workbook;
+        return mWorkbook;
     }
 
-    public void setWorkbook(Object workbook) {
-        Workbook = workbook;
+    public void setWorkbook(Object pWorkbook) {
+        mWorkbook = pWorkbook;
     }
 }

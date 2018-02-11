@@ -1,5 +1,6 @@
 package tgtools.excel.Listener.event;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import tgtools.data.DataTable;
 import tgtools.interfaces.Event;
 
@@ -10,22 +11,22 @@ import tgtools.interfaces.Event;
  * 时  间：10:11
  */
 public class SheetParsedEvent extends Event {
-private DataTable m_Table;
-    private String m_SheetName;
+    private ArrayNode mData;
+    private String mSheetName;
 
-    public DataTable getTable() {
-        return m_Table;
+    public ArrayNode getData() {
+        return mData;
     }
 
-    public void setTable(DataTable p_Table) {
-        m_Table = p_Table;
+    public void setData(ArrayNode pData) {
+        mData = pData;
     }
 
     public String getSheetName() {
-        return m_SheetName;
+        return mSheetName;
     }
 
-    public void setSheetName(String p_SheetName) {
-        m_SheetName = p_SheetName;
+    public void setSheetName(String pSheetName) {
+        mSheetName = pSheetName;
     }
 }

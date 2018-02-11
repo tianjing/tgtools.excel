@@ -1,8 +1,9 @@
 package tgtools.excel.Listener.event;
 
-import tgtools.data.DataRow;
+import com.fasterxml.jackson.databind.JsonNode;
 import tgtools.interfaces.Event;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
@@ -11,9 +12,8 @@ import java.util.List;
  */
 public class ImportEvent extends Event {
 
-    private String[] m_AttrName;
-    private String[] m_Attr;
-    private DataRow m_Row;
+    private LinkedHashMap<String,String> pColumns;
+    private JsonNode mRow;
     private String m_Value;
     private int m_RowIndex;
     private int m_ColumnIndex;
@@ -55,12 +55,12 @@ public class ImportEvent extends Event {
         m_FilterValues = p_FilterValues;
     }
 
-    public DataRow getRow() {
-        return m_Row;
+    public JsonNode getRow() {
+        return mRow;
     }
 
-    public void setRow(DataRow p_Row) {
-        m_Row = p_Row;
+    public void setRow(JsonNode pRow) {
+        mRow = pRow;
     }
 
     public boolean isExcute() {
@@ -95,22 +95,11 @@ public class ImportEvent extends Event {
         m_RowIndex = p_RowIndex;
     }
 
-
-    public String[] getAttr() {
-        return m_Attr;
+    public LinkedHashMap<String, String> getpColumns() {
+        return pColumns;
     }
 
-    public void setAttr(String[] p_Attr) {
-        this.m_Attr = p_Attr;
+    public void setpColumns(LinkedHashMap<String, String> pColumns) {
+        this.pColumns = pColumns;
     }
-
-    public String[] getAttrName() {
-        return m_AttrName;
-    }
-
-    public void setAttrName(String[] p_AttrName) {
-        this.m_AttrName = p_AttrName;
-    }
-
-
 }

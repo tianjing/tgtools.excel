@@ -25,7 +25,8 @@
     <orderEntry type="library" name="Maven: com.github.virtuald:curvesapi:1.04" level="project" />
     <orderEntry type="library" name="Maven: org.apache.poi:poi-examples:3.15" level="project" />
     <orderEntry type="library" name="Maven: org.apache.poi:poi-scratchpad:3.15" level="project" />
-    <orderEntry type="library" name="Maven: tgtools:tgtools.core:1.0.270" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.commons:commons-lang3:3.6" level="project" />
+    <orderEntry type="library" name="Maven: tgtools:tgtools.core:1.0.271" level="project" />
     <orderEntry type="library" name="Maven: net.sf.ehcache:ehcache:2.10.1" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.7" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-core:2.2.3" level="project" />

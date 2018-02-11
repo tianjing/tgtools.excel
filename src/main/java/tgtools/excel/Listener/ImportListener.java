@@ -1,14 +1,24 @@
 package tgtools.excel.Listener;
 
 
-import tgtools.excel.Listener.event.ImportEvent;
-import tgtools.excel.Listener.event.ReadSheetEvent;
-import tgtools.excel.Listener.event.SheetParsedEvent;
+import tgtools.excel.Listener.event.*;
 
 /**
  * Created by tian_ on 2016-06-20.
  */
-public interface ImportLisener {
+public interface ImportListener {
+    /**
+     * 创建excel workbook后对workbook的事件
+     * @param p_Event
+     */
+    void onCreateWorkbook(CreateWorkbookEvent p_Event);
+
+    /**
+     * 整个任务完成后事件
+     * @param p_Event
+     */
+    void onCompleted(ExcelCompletedEvent p_Event);
+
     /**
      * 加载过滤条件事件 通过 列名 列中文名 过滤条件 解析后的过滤条件名集合 过滤条件值集合，重新处理得到新的过滤条件名集合 过滤条件值集合
      * @param p_Event

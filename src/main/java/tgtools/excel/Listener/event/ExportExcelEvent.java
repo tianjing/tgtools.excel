@@ -1,6 +1,7 @@
 package tgtools.excel.Listener.event;
 
-import tgtools.data.DataTable;
+import com.fasterxml.jackson.core.TreeNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import tgtools.interfaces.Event;
 
 /**
@@ -10,48 +11,48 @@ import tgtools.interfaces.Event;
  * 时  间：16:45
  */
 public class ExportExcelEvent extends Event {
-    private DataTable m_Table;
-    private int m_RowIndex;
-    private int m_cellIndex;
-    private Object m_Value;
-    private String m_TableSql;
-    public DataTable getTable() {
-        return m_Table;
+    private ArrayNode mDatas;
+    private int mRowIndex;
+    private int mcellIndex;
+    private Object mValue;
+    private String mTableSql;
+    public ArrayNode getDatas() {
+        return mDatas;
     }
 
-    public void setTable(DataTable p_Table) {
-        m_Table = p_Table;
+    public void setDatas(ArrayNode pDatas) {
+        mDatas = pDatas;
     }
 
     public int getRowIndex() {
-        return m_RowIndex;
+        return mRowIndex;
     }
 
-    public void setRowIndex(int p_RowIndex) {
-        m_RowIndex = p_RowIndex;
+    public void setRowIndex(int pRowIndex) {
+        mRowIndex = pRowIndex;
     }
 
-    public int getcellIndex() {
-        return m_cellIndex;
+    public int getCellIndex() {
+        return mcellIndex;
     }
 
-    public void setcellIndex(int p_cellIndex) {
-        m_cellIndex = p_cellIndex;
+    public void setCellIndex(int pcellIndex) {
+        mcellIndex = pcellIndex;
     }
 
     public Object getValue() {
-        return m_Value;
+        return mValue;
     }
 
-    public void setValue(Object p_Value) {
-        this.m_Value = p_Value;
+    public void setValue(Object pValue) {
+        mValue = pValue;
     }
 
     public String getTableSql() {
-        return m_TableSql;
+        return mTableSql;
     }
 
-    public void setTableSql(String p_TableSql) {
-        m_TableSql = p_TableSql;
+    public void setTableSql(String pTableSql) {
+        mTableSql = pTableSql;
     }
 }
