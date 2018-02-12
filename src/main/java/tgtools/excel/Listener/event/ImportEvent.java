@@ -1,4 +1,4 @@
-package tgtools.excel.Listener.event;
+package tgtools.excel.listener.event;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import tgtools.interfaces.Event;
@@ -14,46 +14,15 @@ public class ImportEvent extends Event {
 
     private LinkedHashMap<String,String> pColumns;
     private JsonNode mRow;
-    private String m_Value;
-    private int m_RowIndex;
-    private int m_ColumnIndex;
-    private boolean m_IsExcute=true;
-    private String m_Filter;
-    private List<String> m_FilterNames;
-    private List<String> m_FilterValues;
-    private boolean m_IsSucess=false;
-
-    public boolean isSucess() {
-        return m_IsSucess;
-    }
-
-    public void setIsSucess(boolean p_IsSucess) {
-        m_IsSucess = p_IsSucess;
-    }
-
-    public String getFilter() {
-        return m_Filter;
-    }
-
-    public void setFilter(String p_Filter) {
-        m_Filter = p_Filter;
-    }
-
-    public List<String> getFilterNames() {
-        return m_FilterNames;
-    }
-
-    public void setFilterNames(List<String> p_FilterNames) {
-        m_FilterNames = p_FilterNames;
-    }
-
-    public List<String> getFilterValues() {
-        return m_FilterValues;
-    }
-
-    public void setFilterValues(List<String> p_FilterValues) {
-        m_FilterValues = p_FilterValues;
-    }
+    private Object mValue;
+    private int mRowIndex;
+    private int mColumnIndex;
+    private boolean mIsExcute=true;
+    private String mFilter;
+    private List<String> mFilterNames;
+    private List<String> mFilterValues;
+    private boolean mIsSucess=false;
+    private String mSql=null;
 
     public JsonNode getRow() {
         return mRow;
@@ -63,36 +32,68 @@ public class ImportEvent extends Event {
         mRow = pRow;
     }
 
-    public boolean isExcute() {
-        return m_IsExcute;
+    public Object getValue() {
+        return mValue;
     }
 
-    public void setIsExcute(boolean p_IsExcute) {
-        m_IsExcute = p_IsExcute;
-    }
-
-    public String getValue() {
-        return m_Value;
-    }
-
-    public void setValue(String p_Value) {
-        m_Value = p_Value;
-    }
-
-    public int getColumnIndex() {
-        return m_ColumnIndex;
-    }
-
-    public void setColumnIndex(int p_ColumnIndex) {
-        m_ColumnIndex = p_ColumnIndex;
+    public void setValue(Object pValue) {
+        mValue = pValue;
     }
 
     public int getRowIndex() {
-        return m_RowIndex;
+        return mRowIndex;
     }
 
-    public void setRowIndex(int p_RowIndex) {
-        m_RowIndex = p_RowIndex;
+    public void setRowIndex(int pRowIndex) {
+        mRowIndex = pRowIndex;
+    }
+
+    public int getColumnIndex() {
+        return mColumnIndex;
+    }
+
+    public void setColumnIndex(int pColumnIndex) {
+        mColumnIndex = pColumnIndex;
+    }
+
+    public boolean getIsExcute() {
+        return mIsExcute;
+    }
+
+    public void setIsExcute(boolean pIsExcute) {
+        mIsExcute = pIsExcute;
+    }
+
+    public String getFilter() {
+        return mFilter;
+    }
+
+    public void setFilter(String pFilter) {
+        mFilter = pFilter;
+    }
+
+    public List<String> getFilterNames() {
+        return mFilterNames;
+    }
+
+    public void setFilterNames(List<String> pFilterNames) {
+        mFilterNames = pFilterNames;
+    }
+
+    public List<String> getFilterValues() {
+        return mFilterValues;
+    }
+
+    public void setFilterValues(List<String> pFilterValues) {
+        mFilterValues = pFilterValues;
+    }
+
+    public boolean getIsSucess() {
+        return mIsSucess;
+    }
+
+    public void setIsSucess(boolean pIsSucess) {
+        mIsSucess = pIsSucess;
     }
 
     public LinkedHashMap<String, String> getpColumns() {
@@ -101,5 +102,13 @@ public class ImportEvent extends Event {
 
     public void setpColumns(LinkedHashMap<String, String> pColumns) {
         this.pColumns = pColumns;
+    }
+
+    public String getSql() {
+        return mSql;
+    }
+
+    public void setSql(String pSql) {
+        mSql = pSql;
     }
 }

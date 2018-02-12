@@ -20,39 +20,44 @@ import java.io.InputStream;
  */
 public class WorkbookFactory {
 
-    public final static String EXCEL_TYPE_XLS="xls";
-    public final static String EXCEL_TYPE_XLSX="xlsx";
+    public final static String EXCEL_TYPE_XLS = "xls";
+    public final static String EXCEL_TYPE_XLSX = "xlsx";
+
     /**
      * 创建excel对象
-     * @param p_Type
+     *
+     * @param pType
+     *
      * @return
      */
-    public static Workbook createWorkbook(String p_Type) {
-        if (p_Type.toLowerCase().contains(EXCEL_TYPE_XLSX)) {
+    public static Workbook createWorkbook(String pType) {
+        if (pType.toLowerCase().contains(EXCEL_TYPE_XLSX)) {
             return new XSSFWorkbook();
-        }
-        else if (p_Type.toLowerCase().contains(EXCEL_TYPE_XLS)) {
-            return  new HSSFWorkbook();
+        } else if (pType.toLowerCase().contains(EXCEL_TYPE_XLS)) {
+            return new HSSFWorkbook();
         }
         return null;
     }
 
     /**
      * 创建excel对象
-     * @param p_File
+     *
+     * @param pFile
+     *
      * @return
+     *
      * @throws APPErrorException
      */
-    public static Workbook createWorkbook(File p_File) throws APPErrorException {
-        String type = FileUtil.getExtensionName(p_File.getName());
+    public static Workbook createWorkbook(File pFile) throws APPErrorException {
+        String type = FileUtil.getExtensionName(pFile.getName());
         try {
             if ("xls".equals(type.toLowerCase())) {
-                return new HSSFWorkbook(new FileInputStream(p_File));
+                return new HSSFWorkbook(new FileInputStream(pFile));
             } else if ("xlsx".equals(type.toLowerCase())) {
-                return new XSSFWorkbook(p_File);
+                return new XSSFWorkbook(pFile);
             }
         } catch (Exception e) {
-            throw new APPErrorException("加载文件失败；文件路径：" + p_File.getAbsolutePath() + ";原因：" + e.getMessage(), e);
+            throw new APPErrorException("加载文件失败；文件路径：" + pFile.getAbsolutePath() + ";原因：" + e.getMessage(), e);
         }
 
         return null;
@@ -60,32 +65,44 @@ public class WorkbookFactory {
 
     /**
      * 创建excel对象
-     * @param p_InputStream
+     *
+     * @param pInputStream
+     *
      * @return
+     *
      * @throws APPErrorException
      */
-    public static Workbook createWorkbook(InputStream p_InputStream) throws APPErrorException {
-        try {
-            return new HSSFWorkbook(p_InputStream);
-        }catch (Exception e)
-        {
+    public static Workbook createWorkbook(InputStream pInputStream, String pVersion) throws APPErrorException {
+        if (EXCEL_TYPE_XLS.equals(pVersion) || ("." + EXCEL_TYPE_XLS).equals(pVersion)) {
             try {
-                p_InputStream.reset();
-                return  new XSSFWorkbook(p_InputStream);
-            } catch (Exception e1) {
+                return new HSSFWorkbook(pInputStream);
+            } catch (Exception e) {
                 throw new APPErrorException("加载EXCEL数据失败；原因：" + e.getMessage(), e);
             }
         }
+        if (EXCEL_TYPE_XLSX.equals(pVersion) || ("." + EXCEL_TYPE_XLSX).equals(pVersion)) {
+            try {
+                return new XSSFWorkbook(pInputStream);
+            } catch (Exception e) {
+                throw new APPErrorException("加载EXCEL数据失败；原因：" + e.getMessage(), e);
+            }
+        }
+        throw new APPErrorException("无法识别的excel 版本；pVersion：" + (null==pVersion?"null":pVersion));
     }
+
+
 
     /**
      * 创建excel对象
-     * @param p_Datas
+     *
+     * @param pDatas
+     *
      * @return
+     *
      * @throws APPErrorException
      */
-    public static Workbook createWorkbook(byte[] p_Datas) throws APPErrorException {
-        ByteArrayInputStream dd=new ByteArrayInputStream(p_Datas);
-        return createWorkbook(dd);
+    public static Workbook createWorkbook(byte[] pDatas, String pVersion) throws APPErrorException {
+        ByteArrayInputStream dd = new ByteArrayInputStream(pDatas);
+        return createWorkbook(dd,pVersion);
     }
 }

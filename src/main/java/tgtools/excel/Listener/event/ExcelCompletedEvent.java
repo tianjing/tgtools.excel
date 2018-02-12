@@ -1,9 +1,9 @@
-package tgtools.excel.Listener.event;
+package tgtools.excel.listener.event;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import tgtools.interfaces.Event;
 
-import java.util.List;
+import java.util.LinkedHashMap;
 
 /**
  * 名  称：表示导入或导出结果事件参数，如果导入那么Table有数据，导出workbook有数据
@@ -12,14 +12,14 @@ import java.util.List;
  * 时  间：10:24
  */
 public class ExcelCompletedEvent extends Event {
-    private List<ArrayNode> mDatas;
+    private LinkedHashMap<String,ArrayNode> mDatas;
     private Object mWorkbook;
 
-    public List<ArrayNode> getDatas() {
+    public LinkedHashMap<String,ArrayNode> getDatas() {
         return mDatas;
     }
 
-    public void setDatas(List<ArrayNode> pDatas) {
+    public void setDatas(LinkedHashMap<String,ArrayNode> pDatas) {
         mDatas = pDatas;
     }
 

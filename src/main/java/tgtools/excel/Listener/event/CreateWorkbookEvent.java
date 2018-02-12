@@ -1,4 +1,4 @@
-package tgtools.excel.Listener.event;
+package tgtools.excel.listener.event;
 
 import tgtools.interfaces.Event;
 
@@ -9,22 +9,22 @@ import tgtools.interfaces.Event;
  * 时  间：9:06
  */
 public class CreateWorkbookEvent extends Event {
-    private Object m_Workbook;
-    private Object m_Data;
+    private Object mWorkbook;
+    private Object mData;
 
     public Object getWorkbook() {
-        return m_Workbook;
+        return mWorkbook;
     }
 
-    public void setWorkbook(Object p_Workbook) {
-        m_Workbook = p_Workbook;
+    public void setWorkbook(Object pWorkbook) {
+        mWorkbook = pWorkbook;
     }
 
     public Object getData() {
-        return m_Data;
+        return mData;
     }
 
-    public void setData(Object p_Data) {
-        m_Data = p_Data;
+    public void setData(Object pData) {
+        mData = pData;
     }
 }

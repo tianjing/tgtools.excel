@@ -1,4 +1,4 @@
-package tgtools.excel.Listener.event;
+package tgtools.excel.listener.event;
 
 import tgtools.interfaces.Event;
 
@@ -9,49 +9,49 @@ import tgtools.interfaces.Event;
  * 时  间：10:06
  */
 public class ReadSheetEvent extends Event {
-    private String m_SheetName;
-    private boolean m_Cancel=false;
-    protected int m_beginDataRow=1;
-    protected int m_beginTitleRow=0;
-    private String m_TableName="";
-
-    public String getTableName() {
-        return m_TableName;
-    }
-
-    public void setTableName(String p_TableName) {
-        m_TableName = p_TableName;
-    }
-
-    public int getbeginDataRow() {
-        return m_beginDataRow;
-    }
-
-    public void setbeginDataRow(int p_beginDataRow) {
-        m_beginDataRow = p_beginDataRow;
-    }
-
-    public int getbeginTitleRow() {
-        return m_beginTitleRow;
-    }
-
-    public void setbeginTitleRow(int p_beginTitleRow) {
-        m_beginTitleRow = p_beginTitleRow;
-    }
+    private String mSheetName;
+    private boolean mCancel=false;
+    protected int mBeginDataRow=1;
+    protected int mBeginTitleRow=0;
+    private String mTableName="";
 
     public String getSheetName() {
-        return m_SheetName;
+        return mSheetName;
     }
 
-    public void setSheetName(String p_SheetName) {
-        m_SheetName = p_SheetName;
+    public void setSheetName(String pSheetName) {
+        mSheetName = pSheetName;
     }
 
     public boolean getCancel() {
-        return m_Cancel;
+        return mCancel;
     }
 
-    public void setCancel(boolean p_Cancel) {
-        m_Cancel = p_Cancel;
+    public void setCancel(boolean pCancel) {
+        mCancel = pCancel;
+    }
+
+    public int getBeginDataRow() {
+        return mBeginDataRow;
+    }
+
+    public void setBeginDataRow(int pBeginDataRow) {
+        mBeginDataRow = pBeginDataRow;
+    }
+
+    public int getBeginTitleRow() {
+        return mBeginTitleRow;
+    }
+
+    public void setBeginTitleRow(int pBeginTitleRow) {
+        mBeginTitleRow = pBeginTitleRow;
+    }
+
+    public String getTableName() {
+        return mTableName;
+    }
+
+    public void setTableName(String pTableName) {
+        mTableName = pTableName;
     }
 }

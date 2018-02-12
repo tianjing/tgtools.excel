@@ -6,13 +6,14 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.poi.hssf.record.CellValueRecordInterface;
 import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFDataFormatter;
 import org.apache.poi.ss.usermodel.*;
 import tgtools.excel.ImportExcel;
-import tgtools.excel.Listener.ImportListener;
-import tgtools.excel.Listener.event.*;
+import tgtools.excel.listener.ImportListener;
+import tgtools.excel.listener.event.*;
 import tgtools.excel.util.JsonUtil;
 import tgtools.exceptions.APPErrorException;
-import tgtools.json.JSONObject;
+import tgtools.util.FileUtil;
 import tgtools.util.LogHelper;
 import tgtools.util.StringUtil;
 
@@ -36,8 +37,10 @@ public class ImportExcelImpl implements ImportExcel {
     protected ObjectNode mImportResult;
     protected Workbook mWorkbook;
     protected ImportListener mListener;
-    protected Map<String,String> mSheetTable;
+    protected Map<String, String> mSheetTable;
     protected ArrayList<String> mTableNames;
+    protected String mDatabaseType = null;
+    protected LinkedHashMap<String, ArrayNode> mParseData = null;
 
     @Override
     public void setListener(ImportListener pListener) {
@@ -45,47 +48,60 @@ public class ImportExcelImpl implements ImportExcel {
     }
 
     @Override
-    public void init(LinkedHashMap<String, String> pColumns, Map<String,String> pSheetTable) {
-        init(pColumns, pSheetTable,0, 1);
+    public void init(LinkedHashMap<String, String> pColumns, Map<String, String> pSheetTable) {
+        init(pColumns, pSheetTable, null, 0, 1);
+    }
+
+    @Override
+    public void init(LinkedHashMap<String, String> pColumns, Map<String, String> pSheetTable, String pDatabaseType) {
+        init(pColumns, pSheetTable, pDatabaseType, 0, 1);
     }
 
 
     @Override
-    public void init(LinkedHashMap<String, String> pColumns, Map<String,String> pSheetTable, int p_BeginDataRow) {
-        init(pColumns,pSheetTable, 0, p_BeginDataRow);
-    }
-    @Override
-    public void init(LinkedHashMap<String, String> pColumns, Map<String,String> pSheetTable, int p_BeginTitleRow, int p_BeginDataRow) {
-        mCoulmns=pColumns;
-        mbeginTitleRow=p_BeginTitleRow;
-        mbeginDataRow=p_BeginDataRow;
-        mSheetTable=pSheetTable;
+    public void init(LinkedHashMap<String, String> pColumns, Map<String, String> pSheetTable, String pDatabaseType, int pBeginDataRow) {
+        init(pColumns, pSheetTable, pDatabaseType, 0, pBeginDataRow);
     }
 
     @Override
-    public void importExcel(File pFile) throws Exception {
+    public void init(LinkedHashMap<String, String> pColumns, Map<String, String> pSheetTable, String pDatabaseType, int pBeginTitleRow, int pBeginDataRow) {
+        mCoulmns = pColumns;
+        mDatabaseType = pDatabaseType;
+        mbeginTitleRow = pBeginTitleRow;
+        mbeginDataRow = pBeginDataRow;
+        mSheetTable = pSheetTable;
+    }
+
+    @Override
+    public void importExcel(File pFile) throws APPErrorException {
 
         if (null == pFile || !pFile.exists()) {
-            throw new Exception("文件不存在！p_File：" + (null == pFile ? "null" : pFile.getAbsolutePath()));
+            throw new APPErrorException("文件不存在！p_File：" + (null == pFile ? "null" : pFile.getAbsolutePath()));
         }
-        importExcel(new FileInputStream(pFile));
-    }
-
-    @Override
-    public void importExcel(byte[] pDatas) throws Exception {
-        if(null==pDatas||pDatas.length<1)
-        {
-            throw new Exception("无效的文件内容p_Datas");
-        }
-        importExcel(new ByteArrayInputStream(pDatas));
-    }
-
-    @Override
-    public void importExcel(InputStream pInputStream) throws Exception {
-        mImportResult = JsonUtil.getEmptyObjectNode();
-        mTableNames=new ArrayList<String>();
+        String ext = FileUtil.getExtensionName(pFile.getAbsolutePath());
         try {
-            mWorkbook = WorkbookFactory.createWorkbook(pInputStream);
+            importExcel(new FileInputStream(pFile), ext);
+        }catch (FileNotFoundException e)
+        {
+            throw new APPErrorException("文件不存在！p_File：" + (null == pFile ? "null" : pFile.getAbsolutePath()));
+        }
+    }
+
+    @Override
+    public void importExcel(byte[] pDatas, String pVersion) throws APPErrorException {
+        if (null == pDatas || pDatas.length < 1) {
+            throw new APPErrorException("无效的文件内容p_Datas");
+        }
+        importExcel(new ByteArrayInputStream(pDatas), pVersion);
+    }
+
+    @Override
+    public void importExcel(InputStream pInputStream, String pVersion) throws APPErrorException {
+        mImportResult = JsonUtil.getEmptyObjectNode();
+        mTableNames = new ArrayList<String>();
+        mParseData = new LinkedHashMap<String, ArrayNode>();
+        try {
+            mWorkbook = WorkbookFactory.createWorkbook(pInputStream, pVersion);
             CreateWorkbookEvent event = new CreateWorkbookEvent();
             event.setData(pInputStream);
             event.setWorkbook(mWorkbook);
@@ -101,6 +117,7 @@ public class ImportExcelImpl implements ImportExcel {
 
 
     }
+
     protected void doImportExcel() throws APPErrorException {
         if (mbeginDataRow < 0) {
             throw new APPErrorException("数据行不能小于0");
@@ -111,10 +128,11 @@ public class ImportExcelImpl implements ImportExcel {
         if (mbeginDataRow <= mbeginTitleRow) {
             throw new APPErrorException("数据行只能大于标题行；标题行：" + String.valueOf(mbeginTitleRow) + ";数据行：" + String.valueOf(mbeginDataRow));
         }
-        if (null != mCoulmns&&mCoulmns.size()>0) {
+        if (null != mCoulmns && mCoulmns.size() > 0) {
             parseExcel();
         }
     }
+
     /**
      * 根据excel列名获取表列明
      *
@@ -123,10 +141,10 @@ public class ImportExcelImpl implements ImportExcel {
      * @return
      */
     private String getAttrName(String pExcelColumnName) {
-        for(Map.Entry<String,String> item :mCoulmns.entrySet())
-        {
-            if(item.getValue().equals(pExcelColumnName))
-            {return item.getKey();}
+        for (Map.Entry<String, String> item : mCoulmns.entrySet()) {
+            if (item.getValue().equals(pExcelColumnName)) {
+                return item.getKey();
+            }
         }
         return null;
     }
@@ -138,30 +156,31 @@ public class ImportExcelImpl implements ImportExcel {
      *
      * @return
      */
-    private String getDateCellValue(Date p_Date) {
-        Date date = p_Date;
+    private String getDateCellValue(Date pDate) {
+        Date date = pDate;
         TimeZone zone = TimeZone.getTimeZone("Asia/Shanghai");
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         sdf.setTimeZone(zone);
         return sdf.format(date);
     }
+
     /**
      * 用于xls 2003 数据变成科学计数后的问题
      *
-     * @param p_Cell
-     * @param p_DefaultValue
+     * @param pCell
+     * @param pDefaultValue
      *
      * @return
      */
-    private String getFixNumericValue(Cell p_Cell, String p_DefaultValue) {
-        String result = p_DefaultValue;
+    private String getFixNumericValue(Cell pCell, String pDefaultValue) {
+        String result = pDefaultValue;
         try {
             //excel 2003
-            if (p_Cell instanceof HSSFCell) {
-                Method method = p_Cell.getClass().getDeclaredMethod("getCellValueRecord");
+            if (pCell instanceof HSSFCell) {
+                Method method = pCell.getClass().getDeclaredMethod("getCellValueRecord");
                 if (null != method) {
                     method.setAccessible(true);
-                    CellValueRecordInterface obj = (CellValueRecordInterface) method.invoke(p_Cell);
+                    CellValueRecordInterface obj = (CellValueRecordInterface) method.invoke(pCell);
                     String value = obj.toString();
                     value = value.substring(value.indexOf(".value=") + 7);
                     result = value.substring(0, value.indexOf("\n"));
@@ -176,7 +195,7 @@ public class ImportExcelImpl implements ImportExcel {
                     new BigDecimal(res);
                     result = res;
                 } catch (Exception ex) {
-                    LogHelper.error("系统", "转换科学基数出错，原值："+p_DefaultValue+";;转换后："+res, "ImportExcel.getFixNumericValue", ex);
+                    LogHelper.error("系统", "转换科学基数出错，原值：" + pDefaultValue + ";;转换后：" + res, "ImportExcel.getFixNumericValue", ex);
                 }
             }
         } catch (Exception e) {
@@ -184,73 +203,75 @@ public class ImportExcelImpl implements ImportExcel {
         }
         return result;
     }
+
     /**
      * 获取公式的值
      *
-     * @param p_Cell
+     * @param pCell
      *
      * @return
      */
     @SuppressWarnings("deprecation")
-    private String getFORMULACellValue(Cell p_Cell) {
+    private Object getFORMULACellValue(Cell pCell) {
         String cellValue = "";
-        FormulaEvaluator evaluator = p_Cell.getSheet().getWorkbook().getCreationHelper().createFormulaEvaluator();
-        CellValue evalValue = evaluator.evaluate(p_Cell);
+        FormulaEvaluator evaluator = pCell.getSheet().getWorkbook().getCreationHelper().createFormulaEvaluator();
+        CellValue evalValue = evaluator.evaluate(pCell);
         switch (evalValue.getCellType()) {
             case Cell.CELL_TYPE_STRING:
                 cellValue = evalValue.getStringValue().trim();
                 break;
             case Cell.CELL_TYPE_NUMERIC:
-                cellValue = String.valueOf(evalValue.getNumberValue());
-                break;
+                return evalValue.getNumberValue();
             case Cell.CELL_TYPE_BOOLEAN:
-                cellValue = String.valueOf(evalValue.getBooleanValue());
-                break;
+                return evalValue.getBooleanValue();
             default:
                 cellValue = "";
         }
         return cellValue;
     }
+
     /**
      * 获取单元格值
      *
-     * @param p_Cell
+     * @param pCell
      *
      * @return
      */
     @SuppressWarnings("deprecation")
-    private String getCellValue(Cell p_Cell) {
+    private Object getCellValue(Cell pCell) {
         String cellValue = "";
-        if (null == p_Cell) {
+        if (null == pCell) {
             return StringUtil.EMPTY_STRING;
         }
-        switch (p_Cell.getCellType()) {
+        switch (pCell.getCellType()) {
             case Cell.CELL_TYPE_STRING:
-                cellValue = p_Cell.getRichStringCellValue().getString().trim();
+                cellValue = pCell.getRichStringCellValue().getString().trim();
                 break;
             case Cell.CELL_TYPE_NUMERIC:
-                if (DateUtil.isCellDateFormatted(p_Cell)) {
-                    cellValue = getDateCellValue(DateUtil.getJavaDate(p_Cell.getNumericCellValue()));
+                if (DateUtil.isCellDateFormatted(pCell)) {
+                    cellValue = getDateCellValue(DateUtil.getJavaDate(pCell.getNumericCellValue()));
                     break;
                 }
-                cellValue = String.valueOf(p_Cell.getNumericCellValue());
+
+                cellValue = new HSSFDataFormatter().formatCellValue(pCell);
+                if (cellValue.indexOf(".") < 0) {
+                    return Integer.parseInt(cellValue);
+                }
                 if (!StringUtil.isNullOrEmpty(cellValue) && (cellValue.indexOf("E+") > 0 || cellValue.indexOf("E-") > 0)) {
-                    cellValue = getFixNumericValue(p_Cell, cellValue);
+                    cellValue = getFixNumericValue(pCell, cellValue);
                 }
                 break;
             case Cell.CELL_TYPE_BOOLEAN:
-                cellValue = String.valueOf(p_Cell.getBooleanCellValue()).trim();
-                break;
+                return pCell.getBooleanCellValue();
             case Cell.CELL_TYPE_FORMULA:
-                //cellValue = p_Cell.getCellFormula();
-                cellValue = getFORMULACellValue(p_Cell);
-                break;
+                return getFORMULACellValue(pCell);
             default:
                 cellValue = "";
         }
         return cellValue;
 
     }
+
     /**
      * 解析数据集
      *
@@ -258,25 +279,25 @@ public class ImportExcelImpl implements ImportExcel {
      *
      * @throws APPErrorException
      */
-    private List<ArrayNode> parseDatas() throws APPErrorException {
-        List<ArrayNode> res =new ArrayList<ArrayNode>();
+    private void parseDatas() throws APPErrorException {
 
         int sheetcount = mWorkbook.getNumberOfSheets();
-        for (int i = 0; i < sheetcount; i++) {//循环excel
+        //循环excel
+        for (int i = 0; i < sheetcount; i++) {
             Sheet sheet = mWorkbook.getSheetAt(i);
             if (null == sheet) {
                 throw new APPErrorException("获取第" + i + "个表错误");
             }
-            int titlerow = 0;
-            int datarow = 0;
+            int titlerow = mbeginTitleRow;
+            int datarow = mbeginDataRow;
             int rowcount = 0;
             Row titleRow = null;
-            ArrayNode dt = null;
+            ArrayNode dt = JsonUtil.getEmptyArrayNode();
             try {
                 ReadSheetEvent readevent = new ReadSheetEvent();
                 readevent.setCancel(false);
-                readevent.setbeginDataRow(mbeginDataRow);
-                readevent.setbeginTitleRow(mbeginTitleRow);
+                readevent.setBeginDataRow(mbeginDataRow);
+                readevent.setBeginTitleRow(mbeginTitleRow);
                 readevent.setSheetName(sheet.getSheetName());
                 onReadSheet(readevent);
                 if (readevent.getCancel()) {
@@ -300,10 +321,9 @@ public class ImportExcelImpl implements ImportExcel {
                     LogHelper.info("", "正在解析行：" + r, "");
                     int colcount = sheetrow.getPhysicalNumberOfCells();
                     LogHelper.info("", "正在解析总列数：" + colcount, "");
-                    ObjectNode row=JsonUtil.getEmptyObjectNode();
+                    ObjectNode row = JsonUtil.getEmptyObjectNode();
                     //循环添加列值
-                    for (int c = 0; c < colcount; c++)
-                    {
+                    for (int c = 0; c < colcount; c++) {
                         if (null == titleRow.getCell(c)) {
                             throw new APPErrorException("无效的标题cell：" + c + "sheetname:" + sheet.getSheetName());
                         }
@@ -315,7 +335,7 @@ public class ImportExcelImpl implements ImportExcel {
                         if (StringUtil.isNullOrEmpty(col)) {
                             continue;
                         }
-                        String value = "";
+                        Object value = "";
                         try {
                             value = getCellValue(sheet.getRow(r).getCell(c));
                             LogHelper.info("", "正在解析行：" + r + "正在解析列：" + c + "标题：" + titleRow.getCell(c).getStringCellValue() + "；值：" + value, "");
@@ -332,12 +352,16 @@ public class ImportExcelImpl implements ImportExcel {
                             onGetValue(event);
 
                             value = event.getValue();
-
-                            row.put(col, value);
+                            if (value instanceof String) {
+                                row.put(col, (String) value);
+                            } else {
+                                row.putPOJO(col, value);
+                            }
                         } catch (Exception ex) {
                             throw new APPErrorException("添加数据到datatable出错：" + ex.getMessage() + ";行：" + String.valueOf(r) + "；列：" + String.valueOf(c) + ";sheet:" + sheet.toString() + ";row:" + sheet.getRow(r).toString(), ex);
                         }
                     }
+                    dt.add(row);
                 } catch (Exception ex) {
                     throw new APPErrorException("添加数据到datatable出错：" + ex.getMessage() + ";行：" + String.valueOf(r) + ";sheet:" + sheet.toString(), ex);
                 }
@@ -348,12 +372,13 @@ public class ImportExcelImpl implements ImportExcel {
             sheetevent.setData(dt);
             onSheetParsed(sheetevent);
             if (null != dt && dt.size() > 0) {
-                res.add(dt);
+                mParseData.put(sheet.getSheetName(), dt);
                 mTableNames.add(sheet.getSheetName());
             }
         }
-        return res;
+
     }
+
     /**
      * 解析excel
      *
@@ -362,23 +387,29 @@ public class ImportExcelImpl implements ImportExcel {
      * @throws APPErrorException
      */
     public void parseExcel() throws APPErrorException {
-        List<ArrayNode> datas = null;
         try {
-            datas = parseDatas();
+            parseDatas();
         } catch (Exception ex) {
             LogHelper.error("", "excel解析错误22", "ImportExcel。parseExcel1", ex);
         }
+        if (StringUtil.isNullOrEmpty(mDatabaseType)) {
+            return;
+        }
+        parseToDatabase();
 
+    }
+    protected void parseToDatabase() throws APPErrorException {
         try {
 
-            if (null == datas || datas.size() < 1) {
+            if (null == mParseData || mParseData.size() < 1) {
                 throw new APPErrorException("excel没有有效内容");
             }
             int count = 0;
             int sucess = 0;
-            int error=0;
-            for (int i = 0; i < datas.size(); i++) {
-                ArrayNode table = datas.get(i);
+            int error = 0;
+            int i = 0;
+            for (Map.Entry<String, ArrayNode> item : mParseData.entrySet()) {
+                ArrayNode table = item.getValue();
                 count += table.size();
                 String tablename = mTableNames.get(i);
                 for (int rownum = 0; rownum < table.size(); rownum++) {
@@ -388,112 +419,129 @@ public class ImportExcelImpl implements ImportExcel {
                         event.setpColumns(mCoulmns);
                         event.setIsExcute(true);
                         event.setRow(row);
-
+                        String sql = tgtools.util.JsonSqlFactory.parseInsertSql(row, mDatabaseType, tablename);
+                        event.setSql(sql);
                         onExcuteSQL(event);
 
-                        String sql = tgtools.util.JsonSqlFactory.parseInsertSql(new JSONObject(row.toString()), tablename);
-                        if (event.isExcute()) {
-                            sucess += execute(sql);
+                        if (event.getIsExcute()) {
+
+                            sucess += execute(event.getSql());
                         } else {
-                            sucess += event.isSucess() ? 1 : 0;
+                            sucess += event.getIsSucess() ? 1 : 0;
                         }
 
                     } catch (Exception e) {
-                        error=error+1;
+                        error = error + 1;
                         LogHelper.error("", "excel导入出错", "ImportExcel.parseExcel1", e);
                     }
                 }
+                i = i + 1;
             }
-            mImportResult.put("count",count);
-            mImportResult.put("success",sucess);
-            mImportResult.put("error",error);
+            mImportResult.put("count", count);
+            mImportResult.put("success", sucess);
+            mImportResult.put("error", error);
             ExcelCompletedEvent event = new ExcelCompletedEvent();
-            event.setDatas(datas);
+            event.setDatas(mParseData);
             event.setWorkbook(mWorkbook);
             onCompleted(event);
         } catch (Exception ex) {
             throw new APPErrorException("解析excel错误，原因：" + ex.getMessage(), ex);
         }
     }
-
     private int execute(String sql) throws APPErrorException {
         sql = tgtools.util.SqlStrHelper.processKeyWord(sql);
         return tgtools.db.DataBaseFactory.getDefault().executeUpdate(sql);
     }
+
     @Override
     public ObjectNode getImportResult() {
         return mImportResult;
     }
 
     @Override
+    public LinkedHashMap<String, ArrayNode> getParseData() {
+        return new LinkedHashMap<String, ArrayNode>(){{putAll(mParseData);}};
+    }
+
+    @Override
     public void close() throws IOException {
-        if(null!=mCoulmns) {
+        if(null!=mParseData)
+        {
+            mParseData.clear();
+        }
+        if (null != mCoulmns) {
             mCoulmns.clear();
         }
-        if(null!=mImportResult) {
+        if (null != mImportResult) {
             mImportResult.removeAll();
         }
-        if(null!=mWorkbook) {
+        if (null != mWorkbook) {
             try {
                 mWorkbook.close();
-            }catch (Exception e)
-            {}
+            } catch (Exception e) {
+            }
         }
-        if(null!=mSheetTable) {
+        if (null != mSheetTable) {
             mSheetTable.clear();
         }
-        if(null!=mTableNames) {
+        if (null != mTableNames) {
             mTableNames.clear();
         }
-        mCoulmns=null;
-        mImportResult=null;
+        mCoulmns = null;
+        mImportResult = null;
         mWorkbook = null;
-        mListener=null;
-        mSheetTable=null;
-        mTableNames=null;
-
+        mListener = null;
+        mSheetTable = null;
+        mTableNames = null;
+        mParseData=null;
     }
 
 
     //------------------------------ Listener  ------------------------------------
+
     /**
      * 创建excel workbook后对workbook的事件
      *
-     * @param p_Event
+     * @param pEvent
      */
-    protected void onCreateWorkbook(CreateWorkbookEvent p_Event) {
+    protected void onCreateWorkbook(CreateWorkbookEvent pEvent) {
         if (null != mListener) {
-            mListener.onCreateWorkbook(p_Event);
+            mListener.onCreateWorkbook(pEvent);
         }
     }
-    public void onReadSheet(ReadSheetEvent p_Event) {
+
+    public void onReadSheet(ReadSheetEvent pEvent) {
         if (null != mListener) {
-            mListener.onReadSheet(p_Event);
+            mListener.onReadSheet(pEvent);
         }
     }
+
     /**
      * 整个任务完成后事件
      *
-     * @param p_Event
+     * @param pEvent
      */
-    protected void onCompleted(ExcelCompletedEvent p_Event) {
+    protected void onCompleted(ExcelCompletedEvent pEvent) {
         if (null != mListener) {
-            mListener.onCompleted(p_Event);
+            mListener.onCompleted(pEvent);
         }
     }
-    protected void onExcuteSQL(ImportEvent p_Event) {
+
+    protected void onExcuteSQL(ImportEvent pEvent) {
         if (null != mListener) {
-            mListener.onExcuteSQL(p_Event);
+            mListener.onExcuteSQL(pEvent);
         }
     }
-    public void onSheetParsed(SheetParsedEvent p_Event) {
+
+    public void onSheetParsed(SheetParsedEvent pEvent) {
         if (null != mListener) {
-            mListener.onSheetParsed(p_Event);
+            mListener.onSheetParsed(pEvent);
         }
     }
-    protected void onGetValue(ImportEvent p_Event) {
+
+    protected void onGetValue(ImportEvent pEvent) {
         if (null != mListener) {
-            mListener.onGetValue(p_Event);
+            mListener.onGetValue(pEvent);
         }
     }
 }

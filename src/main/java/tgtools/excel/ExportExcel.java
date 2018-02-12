@@ -2,10 +2,10 @@ package tgtools.excel;
 
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import tgtools.excel.Listener.ExportListener;
+import tgtools.excel.listener.ExportListener;
+import tgtools.exceptions.APPErrorException;
 
 import java.io.Closeable;
-import java.io.File;
 import java.io.OutputStream;
 import java.util.LinkedHashMap;
 
@@ -25,37 +25,18 @@ public interface ExportExcel extends Closeable {
      *
      * @param pVersion Excel版本 参考 ExportExcel中 VERSION_EXCEL2003 VERSION_EXCEL2007
      *
-     * @throws Exception
+     * @throws APPErrorException
      */
-    void init(String pVersion) throws Exception;
-
-    /**
-     * 初始化参数
-     *
-     * @param pFile 文件对象 根据文件的扩展名 判断excel 版本
-     *
-     * @throws Exception
-     */
-    void init(File pFile) throws Exception;
-
-    /**
-     * 初始化参数
-     *
-     * @param pVersion      Excel版本 参考 ExportExcel中 VERSION_EXCEL2003 VERSION_EXCEL2007
-     * @param pOutputStream excel写入时保存的流对象
-     *
-     * @throws Exception
-     */
-    void init(String pVersion, OutputStream pOutputStream) throws Exception;
+    void init(String pVersion) throws APPErrorException;
 
     /**
      * 设置自定义监听 可进行功能扩展
      *
      * @param pLitener
      *
-     * @throws Exception
+     * @throws APPErrorException
      */
-    void setLisener(ExportListener pLitener) throws Exception;
+    void setLisener(ExportListener pLitener) throws APPErrorException;
 
     /**
      * 通过json 追加数据到默认"sheet1", 0行表头，1行开始写入数据） 中
@@ -63,9 +44,9 @@ public interface ExportExcel extends Closeable {
      * @param pColumns 列信息  key为列英文 value为别名或中文 Map中key的顺序为excel导出数据的顺序（作为excel表头和json数据匹配中）
      * @param pJson
      *
-     * @throws Exception
+     * @throws APPErrorException
      */
-    void appendData(LinkedHashMap<String, String> pColumns, ArrayNode pJson) throws Exception;
+    void appendData(LinkedHashMap<String, String> pColumns, ArrayNode pJson) throws APPErrorException;
 
     /**
      * 通过json 追加数据到默认"sheet1", 0行表头，1行开始写入数据） 中
@@ -73,8 +54,10 @@ public interface ExportExcel extends Closeable {
      * @param pColumns        列信息  key为列英文 value为别名或中文 Map中key的顺序为excel导出数据的顺序（作为excel表头和json数据匹配中）
      * @param pJson
      * @param pIsExportTitle 是否写入表头
+     *
+     * @throws APPErrorException
      */
-    void appendData(LinkedHashMap<String, String> pColumns, ArrayNode pJson, boolean pIsExportTitle) throws Exception;
+    void appendData(LinkedHashMap<String, String> pColumns, ArrayNode pJson, boolean pIsExportTitle) throws APPErrorException;
 
     /**
      * 向指定excel追加数据
@@ -86,27 +69,27 @@ public interface ExportExcel extends Closeable {
      * @param pSheetIndex    excel 新建sheet时使用的索引
      * @param pDataIndex     （从第几行增加数据,默认是1 即 标题行的下一行）
      *
-     * @throws Exception
+     * @throws APPErrorException
      */
-    void appendData(LinkedHashMap<String, String> pColumns, ArrayNode pJson, boolean pIsExportTitle, String pSheetName, int pSheetIndex, int pDataIndex) throws Exception;
+    void appendData(LinkedHashMap<String, String> pColumns, ArrayNode pJson, boolean pIsExportTitle, String pSheetName, int pSheetIndex, int pDataIndex) throws APPErrorException;
 
     /**
      * 获取excel数据 同时 释放excel对象
      *
      * @return 获取 excel 所有内容
      *
-     * @throws Exception
+     * @throws APPErrorException
      */
-    byte[] getBytes() throws Exception;
+    byte[] getBytes() throws APPErrorException;
 
     /**
      * 获取 Excel 流对象 使用完 请调用 close 方法释放
      *
      * @return 获取 excel流 对象
      *
-     * @throws Exception
+     * @throws APPErrorException
      */
-    OutputStream getOutputStream() throws Exception;
+    OutputStream getOutputStream() throws APPErrorException;
 
     /**
      * 获取 Excel 对象  使用完 请调用 close 方法释放

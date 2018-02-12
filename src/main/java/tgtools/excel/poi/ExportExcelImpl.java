@@ -1,20 +1,18 @@
 package tgtools.excel.poi;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import tgtools.excel.ExportExcel;
-import tgtools.excel.Listener.ExportListener;
-import tgtools.excel.Listener.event.CreateWorkbookEvent;
-import tgtools.excel.Listener.event.ExcelCompletedEvent;
-import tgtools.excel.Listener.event.ExportExcelEvent;
-import tgtools.util.FileUtil;
-import tgtools.util.StringUtil;
+import tgtools.excel.listener.ExportListener;
+import tgtools.excel.listener.event.CreateWorkbookEvent;
+import tgtools.excel.listener.event.ExcelCompletedEvent;
+import tgtools.excel.listener.event.ExportExcelEvent;
+import tgtools.exceptions.APPErrorException;
 
-import java.io.*;
-import java.util.ArrayList;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -25,87 +23,56 @@ import java.util.Map;
  * @date 8:40
  */
 public class ExportExcelImpl implements ExportExcel {
-    protected OutputStream mOutputStream;
     protected Workbook mWorkbook;
     protected ExportListener mListener;
-    protected boolean mIsFile = false;
     protected String mVersion = null;
-    protected int mDataIndex = 1;
+    protected int mDataIndex = 0;
     protected ArrayNode mDatas = null;
     protected LinkedHashMap<String, String> mColumns = null;
     protected boolean mIsExportTitle = true;
 
     @Override
-    public void init(String pVersion) throws Exception {
-        init(pVersion, new ByteArrayOutputStream());
+    public void init(String pVersion) throws APPErrorException {
+        mVersion = pVersion;
+        createWorkbook();
     }
 
-    @Override
-    public void init(File pFile) throws Exception {
-        if (null == pFile) {
-            throw new Exception("pFile 不能为空");
-        }
-        if (!pFile.exists()) {
-            throw new Exception("文件不存在。pFile：" + pFile.getAbsolutePath());
-        }
-        String version = FileUtil.getExtensionName(pFile.getName());
-        mIsFile = true;
-        init(version, new FileOutputStream(pFile));
-    }
-
-    @Override
-    public void init(String pVersion, OutputStream pOutputStream) throws Exception {
-        if (StringUtil.isNullOrEmpty(pVersion)) {
-            throw new Exception("pVersion 不能为空");
-        }
-        if (!ExportExcel.VERSION_EXCEL2003.equals(pVersion) || !ExportExcel.VERSION_EXCEL2007.equals(pVersion) ||
-                !("." + ExportExcel.VERSION_EXCEL2003).equals(pVersion) || !("." + ExportExcel.VERSION_EXCEL2007).equals(pVersion)) {
-            throw new Exception("pVersion 信息超出范围，请参看 ExportExcel");
-        }
-        if (null == pOutputStream) {
-            throw new Exception("pOutputStream 不能为空");
-        }
-        this.mVersion = pVersion;
-        this.mOutputStream = pOutputStream;
-    }
 
     /**
      * 创建excel对象
      *
      * @throws Exception
      */
-    protected void createWorkbook() throws Exception {
+    protected void createWorkbook() throws APPErrorException {
         mWorkbook = WorkbookFactory.createWorkbook(mVersion);
-
         CreateWorkbookEvent event = new CreateWorkbookEvent();
-        event.setData(mOutputStream);
+        event.setData(mDatas);
         event.setWorkbook(mWorkbook);
         onCreateWorkbook(event);
     }
 
     @Override
-    public void setLisener(ExportListener pListener) throws Exception {
+    public void setLisener(ExportListener pListener) throws APPErrorException {
         mListener = pListener;
     }
 
     @Override
-    public void appendData(LinkedHashMap<String, String> pColumns, ArrayNode pJson) throws Exception {
+    public void appendData(LinkedHashMap<String, String> pColumns, ArrayNode pJson) throws APPErrorException {
         appendData(pColumns, pJson, true);
     }
 
     @Override
-    public void appendData(LinkedHashMap<String, String> pColumns, ArrayNode pJson, boolean pIsExportTitle) throws Exception {
-        appendData(pColumns, pJson, pIsExportTitle, "sheet1", 0, 1);
+    public void appendData(LinkedHashMap<String, String> pColumns, ArrayNode pJson, boolean pIsExportTitle) throws APPErrorException {
+        appendData(pColumns, pJson, pIsExportTitle, "sheet1", 0, 0);
     }
 
     @Override
-    public void appendData(LinkedHashMap<String, String> pColumns, ArrayNode pJson, boolean pIsExportTitle, String p_sheetName, int p_Index, int pDataIndex) throws Exception {
+    public void appendData(LinkedHashMap<String, String> pColumns, ArrayNode pJson, boolean pIsExportTitle, String pSheetName, int pIndex, int pDataIndex) throws APPErrorException {
         mDataIndex = pDataIndex;
         mDatas = pJson;
         mColumns = pColumns;
         mIsExportTitle = pIsExportTitle;
-        createWorkbook();
-        Sheet sheet = createSheet(p_sheetName, p_Index);
+        Sheet sheet = createSheet(pSheetName, pIndex);
         writeExcel(sheet);
     }
 
@@ -116,15 +83,20 @@ public class ExportExcelImpl implements ExportExcel {
      *
      * @throws Exception
      */
-    protected void writeExcel(Sheet sheet1) throws Exception {
+    protected void writeExcel(Sheet sheet1) throws APPErrorException {
+        final Sheet sheet2=sheet1;
         try {
-            writeTitle(sheet1);
+            if (mIsExportTitle) {
+                writeTitle(sheet1);
+            }
             writeContent(sheet1);
 
         } finally {
             ExcelCompletedEvent event = new ExcelCompletedEvent();
             event.setWorkbook(mWorkbook);
-            event.setDatas(new ArrayList<ArrayNode>(){{add(mDatas);}});
+            event.setDatas(new LinkedHashMap<String, ArrayNode>() {{
+                put(sheet2.getSheetName(),mDatas);
+            }});
             onCompleted(event);
         }
     }
@@ -137,14 +109,30 @@ public class ExportExcelImpl implements ExportExcel {
     protected void writeContent(Sheet sheet1) {
         for (int i = 0, count = mDatas.size(); i < count; i++) {
 
-            Row row = sheet1.createRow(i + 1);
-            int k=0;
+            Row row = sheet1.createRow(mDataIndex + i + 1);
+            int k = 0;
             for (Map.Entry<String, String> item : mColumns.entrySet()) {
-                String name =item.getKey();
-                Object value = mDatas.get(i).get(name);
+                String name = item.getKey();
+                JsonNode value = mDatas.get(i).get(name);
 
                 Cell cell = row.createCell(k);
-                cell.setCellValue(value.toString());
+                if (value.isTextual()) {
+                    cell.setCellValue(value.asText());
+                } else if (value.isBigDecimal()) {
+                    cell.setCellValue(value.asDouble());
+                } else if (value.isBigInteger()) {
+                    cell.setCellValue(value.asLong());
+                } else if (value.isInt()) {
+                    cell.setCellValue(value.asInt());
+                    CellStyle style=mWorkbook.createCellStyle();
+                    DataFormat df = mWorkbook.createDataFormat();
+                    style.setDataFormat(df.getFormat("#,#0"));
+                    cell.setCellStyle(style);
+                }else if (value.isBoolean()) {
+                    cell.setCellValue(value.asBoolean());
+                } else {
+                    cell.setCellValue(value.toString());
+                }
 
                 ExportExcelEvent event = new ExportExcelEvent();
                 event.setDatas(mDatas);
@@ -152,7 +140,7 @@ public class ExportExcelImpl implements ExportExcel {
                 event.setCellIndex(k);
                 event.setValue(cell);
                 onWriteCell(event);
-                k=k+1;
+                k = k + 1;
             }
         }
 
@@ -166,7 +154,7 @@ public class ExportExcelImpl implements ExportExcel {
     protected void writeTitle(Sheet sheet1) {
         Row row = sheet1.createRow(0);
         int k = 0;
-        for (Map.Entry<String, String> item :mColumns.entrySet()) {
+        for (Map.Entry<String, String> item : mColumns.entrySet()) {
             String nickname = item.getValue();
             Cell cell = row.createCell(k);
             cell.setCellValue(nickname);
@@ -183,34 +171,37 @@ public class ExportExcelImpl implements ExportExcel {
     /**
      * 创建excel对象
      *
-     * @param p_SheetName
-     * @param p_Index
+     * @param pSheetName
+     * @param pIndex
      *
      * @return
      *
      * @throws Exception
      */
-    protected Sheet createSheet(String p_SheetName, int p_Index) throws Exception {
-        Sheet s = mWorkbook.getSheet(p_SheetName);
+    protected Sheet createSheet(String pSheetName, int pIndex) throws APPErrorException {
+        Sheet s = mWorkbook.getSheet(pSheetName);
         if (null == s) {
-            s = mWorkbook.createSheet(p_SheetName);
-            mWorkbook.setSheetName(p_Index, p_SheetName);
+            s = mWorkbook.createSheet(pSheetName);
+            mWorkbook.setSheetName(pIndex, pSheetName);
         }
         return s;
     }
 
     @Override
-    public byte[] getBytes() throws Exception {
-        if (mOutputStream instanceof ByteArrayOutputStream) {
-            close(false);
-            return ((ByteArrayOutputStream) mOutputStream).toByteArray();
-        }
-        throw new Exception("当前使用的不是内存流，请使用getOutputStream()");
+    public byte[] getBytes() throws APPErrorException {
+        return ((ByteArrayOutputStream) getOutputStream()).toByteArray();
     }
 
     @Override
-    public OutputStream getOutputStream() throws Exception {
-        return mOutputStream;
+    public OutputStream getOutputStream() throws APPErrorException {
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            mWorkbook.write(out);
+            return out;
+        }catch (Exception e)
+        {
+            throw new APPErrorException("Workbook write ByteArrayOutputStream 出错，原因："+e.getMessage(),e);
+        }
     }
 
     @Override
@@ -228,13 +219,9 @@ public class ExportExcelImpl implements ExportExcel {
             mWorkbook.close();
         } catch (Exception e) {
         }
-        try {
-            mOutputStream.close();
-        } catch (Exception e) {
-        }
+
         if (pIsRelease) {
             mListener = null;
-            mOutputStream = null;
             mWorkbook = null;
         }
     }
@@ -249,31 +236,31 @@ public class ExportExcelImpl implements ExportExcel {
     /**
      * 创建excel workbook后对workbook的事件
      *
-     * @param p_Event
+     * @param pEvent
      */
-    protected void onCreateWorkbook(CreateWorkbookEvent p_Event) {
+    protected void onCreateWorkbook(CreateWorkbookEvent pEvent) {
         if (null != mListener) {
-            mListener.onCreateWorkbook(p_Event);
+            mListener.onCreateWorkbook(pEvent);
         }
     }
 
     /**
      * 整个任务完成后事件
      *
-     * @param p_Event
+     * @param pEvent
      */
-    protected void onCompleted(ExcelCompletedEvent p_Event) {
+    protected void onCompleted(ExcelCompletedEvent pEvent) {
         if (null != mListener) {
-            mListener.onCompleted(p_Event);
+            mListener.onCompleted(pEvent);
         }
     }
 
     /**
      * 写入单元格事件
+     *
      * @param pEvent
      */
-    protected void onWriteCell(ExportExcelEvent pEvent)
-    {
+    protected void onWriteCell(ExportExcelEvent pEvent) {
         if (null != mListener) {
             mListener.onWriteCell(pEvent);
         }
@@ -281,10 +268,10 @@ public class ExportExcelImpl implements ExportExcel {
 
     /**
      * 写入标题事件
+     *
      * @param pEvent
      */
-    protected void onWriteTitle(ExportExcelEvent pEvent)
-    {
+    protected void onWriteTitle(ExportExcelEvent pEvent) {
         if (null != mListener) {
             mListener.onWriteTitle(pEvent);
         }

@@ -1,9 +1,9 @@
-package tgtools.excel.Listener;
+package tgtools.excel.listener;
 
 
-import tgtools.excel.Listener.event.CreateWorkbookEvent;
-import tgtools.excel.Listener.event.ExcelCompletedEvent;
-import tgtools.excel.Listener.event.ExportExcelEvent;
+import tgtools.excel.listener.event.CreateWorkbookEvent;
+import tgtools.excel.listener.event.ExcelCompletedEvent;
+import tgtools.excel.listener.event.ExportExcelEvent;
 
 /**
  * Created by tian_ on 2016-06-17.
@@ -11,26 +11,26 @@ import tgtools.excel.Listener.event.ExportExcelEvent;
 public interface ExportListener {
     /**
      * 当写入Excel标题时事件 通过cellindex datatable 和 value（jxl.write.Lable）对写入Excel的值做自定义处理
-     * @param p_ExportExcelEvent
+     * @param pEvent
      */
-    void onWriteTitle(ExportExcelEvent p_ExportExcelEvent);
+    void onWriteTitle(ExportExcelEvent pEvent);
 
     /**
      * 当写入Excel内容时事件 通过cellindex rowindex datatable 和 value（jxl.write.Lable）对写入Excel的值做自定义处理
-     * @param p_ExportExcelEvent
+     * @param pEvent
      */
-    void onWriteCell(ExportExcelEvent p_ExportExcelEvent);
+    void onWriteCell(ExportExcelEvent pEvent);
     /**
      * 创建excel workbook后对workbook的事件
-     * @param p_Event
+     * @param pEvent
      */
-    void onCreateWorkbook(CreateWorkbookEvent p_Event);
+    void onCreateWorkbook(CreateWorkbookEvent pEvent);
 
     /**
      * 整个任务完成后事件
-     * @param p_Event
+     * @param pEvent
      */
-    void onCompleted(ExcelCompletedEvent p_Event);
+    void onCompleted(ExcelCompletedEvent pEvent);
 
 
 }
