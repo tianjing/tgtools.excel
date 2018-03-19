@@ -18,6 +18,16 @@
             <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
         </license>
     </licenses>
+    <developers>
+        <developer>
+            <name>tianjing</name>
+            <email>tian___jing@hotmail.com</email>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>+8</timezone>
+        </developer>
+    </developers>
     <scm>
         <connection>scm:git:https://github.com/tianjing/tgtools.excel.git</connection>
         <developerConnection>scm:git:https://github.com/tianjing/tgtools.excel.git</developerConnection>
