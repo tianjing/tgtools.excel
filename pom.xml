@@ -31,12 +31,9 @@
     <scm>
         <connection>scm:git:https://github.com/tianjing/tgtools.excel.git</connection>
         <developerConnection>scm:git:https://github.com/tianjing/tgtools.excel.git</developerConnection>
-        <url>https://github.com/tianjing/tgtools.excel.git</url>
+        <url>https://github.com/tianjing/tgtools.excel</url>
         <tag>v${project.version}</tag>
     </scm>
-
-
-
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -91,28 +88,6 @@
     </dependencies>
     <build>
         <plugins>
-            <!-- git 发布 -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>2.5.3</version>
-                <configuration>
-                    <providerImplementations>
-                        <git>jgit</git>
-                    </providerImplementations>
-                    <username>xxxusername</username>
-                    <password>xxxxpasswrod</password>
-                    <tagBase>${project.artifactId}-${project.version}</tagBase>
-                    <goals>-f pom.xml deploy</goals>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.apache.maven.scm</groupId>
-                        <artifactId>maven-scm-provider-jgit</artifactId>
-                        <version>1.9.5</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
