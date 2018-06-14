@@ -152,7 +152,7 @@ public class ImportExcelImpl implements ImportExcel {
     /**
      * 获取日期型单元格值
      *
-     * @param p_Date
+     * @param pDate
      *
      * @return
      */
@@ -325,7 +325,8 @@ public class ImportExcelImpl implements ImportExcel {
                     //循环添加列值
                     for (int c = 0; c < colcount; c++) {
                         if (null == titleRow.getCell(c)) {
-                            throw new APPErrorException("无效的标题cell：" + c + "sheetname:" + sheet.getSheetName());
+                            break;
+                            //throw new APPErrorException("无效的标题cell：" + c + "sheetname:" + sheet.getSheetName());
                         }
                         LogHelper.info("", "正在解析行：" + r + "正在解析列：" + c + "标题：" + titleRow.getCell(c).getStringCellValue(), "");
                         //取得excel列名
@@ -544,4 +545,29 @@ public class ImportExcelImpl implements ImportExcel {
             mListener.onGetValue(pEvent);
         }
     }
+
+    public static void main(String[] args) {
+        String filepath = "C:\\tianjing\\Desktop\\220kV_监控设备台账模板.xls";
+        ImportExcelImpl importExcel = new ImportExcelImpl();
+        LinkedHashMap<String, String> columns = new LinkedHashMap<String, String>();
+        columns.put("ID", "序号");
+        columns.put("NAME", "间隔");
+        columns.put("BIR", "设备类别");
+        HashMap<String, String> table = new HashMap<String, String>();
+        table.put("sheet1", "MQ_SYS.ACT_ID_USER");
+        //默认不做数据库操作 之转换成json
+        importExcel.init(columns, table);
+
+        //设置数据库类型后进行sql 操作
+        //importExcel.init(columns, table,"dm");
+        try {
+            importExcel.importExcel(new File(filepath));
+            Map<String, ArrayNode> ds = importExcel.getParseData();
+            importExcel.close();
+            System.out.println(ds);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }
