@@ -254,6 +254,10 @@ public class ImportExcelImpl implements ImportExcel {
                 }
 
                 cellValue = new HSSFDataFormatter().formatCellValue(pCell);
+                if(cellValue.indexOf("%") >0)
+                {
+                    cellValue=String.valueOf(pCell.getNumericCellValue());
+                }
                 if (cellValue.indexOf(".") < 0) {
                     return Integer.parseInt(cellValue);
                 }
@@ -319,7 +323,9 @@ public class ImportExcelImpl implements ImportExcel {
                         continue;
                     }
                     LogHelper.info("", "正在解析行：" + r, "");
-                    int colcount = sheetrow.getPhysicalNumberOfCells();
+                    //int colcount = sheetrow.getPhysicalNumberOfCells();
+                    int colcount = sheetrow.getLastCellNum();
+
                     LogHelper.info("", "正在解析总列数：" + colcount, "");
                     ObjectNode row = JsonUtil.getEmptyObjectNode();
                     //循环添加列值
@@ -334,6 +340,10 @@ public class ImportExcelImpl implements ImportExcel {
                         String col = getAttrName(colName);
 
                         if (StringUtil.isNullOrEmpty(col)) {
+                            continue;
+                        }
+                        if(null==sheet.getRow(r).getCell(c))
+                        {
                             continue;
                         }
                         Object value = "";
@@ -547,16 +557,29 @@ public class ImportExcelImpl implements ImportExcel {
     }
 
     public static void main(String[] args) {
-        String filepath = "C:\\tianjing\\Desktop\\220kV_监控设备台账模板.xls";
+        String filepath = "C:\\tianjing\\Desktop\\科技项目入账记录簿.xlsx";
         ImportExcelImpl importExcel = new ImportExcelImpl();
         LinkedHashMap<String, String> columns = new LinkedHashMap<String, String>();
-        columns.put("ID", "序号");
-        columns.put("NAME", "间隔");
-        columns.put("BIR", "设备类别");
+        columns.put("XH", "序号");
+        columns.put("SJ", "时间");
+        columns.put("XMMC", "项目名称");
+        columns.put("KMFL", "科目分类");
+        columns.put("KMXF", "科目细分");
+        columns.put("JE", "金额");
+        columns.put("SL", "税率");
+        columns.put("SE", "税额");
+        columns.put("JSHJ", "价税合计");
+        columns.put("FPHM", "发票号码");
+        columns.put("SKRMC", "收款人名称");
+        columns.put("KHH", "开户行");
+        columns.put("YHZH", "银行账户");
+        columns.put("CS", "处室");
+        columns.put("JBR", "经办人");
+        columns.put("BZ", "备注");
         HashMap<String, String> table = new HashMap<String, String>();
         table.put("sheet1", "MQ_SYS.ACT_ID_USER");
         //默认不做数据库操作 之转换成json
-        importExcel.init(columns, table);
+        importExcel.init(columns, table,null,0,1);
 
         //设置数据库类型后进行sql 操作
         //importExcel.init(columns, table,"dm");
