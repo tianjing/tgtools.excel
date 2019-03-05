@@ -11,6 +11,7 @@ import tgtools.excel.listener.event.ExportExcelEvent;
 import tgtools.exceptions.APPErrorException;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.LinkedHashMap;
@@ -37,6 +38,11 @@ public class ExportExcelImpl implements ExportExcel {
         createWorkbook();
     }
 
+    @Override
+    public void init(File pFile) throws APPErrorException {
+        createWorkbook(pFile);
+    }
+
 
     /**
      * 创建excel对象
@@ -50,7 +56,18 @@ public class ExportExcelImpl implements ExportExcel {
         event.setWorkbook(mWorkbook);
         onCreateWorkbook(event);
     }
-
+    /**
+     * 创建excel对象
+     *
+     * @throws Exception
+     */
+    protected void createWorkbook(File pFile) throws APPErrorException {
+        mWorkbook = WorkbookFactory.createWorkbook(pFile);
+        CreateWorkbookEvent event = new CreateWorkbookEvent();
+        event.setData(mDatas);
+        event.setWorkbook(mWorkbook);
+        onCreateWorkbook(event);
+    }
     @Override
     public void setLisener(ExportListener pListener) throws APPErrorException {
         mListener = pListener;

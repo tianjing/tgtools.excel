@@ -6,6 +6,7 @@ import tgtools.excel.listener.ExportListener;
 import tgtools.exceptions.APPErrorException;
 
 import java.io.Closeable;
+import java.io.File;
 import java.io.OutputStream;
 import java.util.LinkedHashMap;
 
@@ -28,6 +29,14 @@ public interface ExportExcel extends Closeable {
      * @throws APPErrorException
      */
     void init(String pVersion) throws APPErrorException;
+    /**
+     * 初始化参数
+     *
+     * @param pFile Excel文件
+     *
+     * @throws APPErrorException
+     */
+    void init(File pFile) throws APPErrorException;
 
     /**
      * 设置自定义监听 可进行功能扩展

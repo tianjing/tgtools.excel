@@ -25,9 +25,10 @@ public class ExportExcelImplTest {
     public void ExportXlsToByteTest()
     {
         try {
-            String filepath = "C:\\tianjing\\Desktop\\221.xls";
+            String filepath = "C:\\Users\\tian_\\Desktop\\221.xls";
+            String outfilepath = "C:\\Users\\tian_\\Desktop\\222.xls";
             ExportExcelImpl export = new ExportExcelImpl();
-            export.init(WorkbookFactory.EXCEL_TYPE_XLS);
+            export.init(new File(filepath));
             LinkedHashMap<String,String> columns=new LinkedHashMap<String,String>();
             columns.put("ID","主键");
             columns.put("NAME","名称");
@@ -53,10 +54,10 @@ public class ExportExcelImplTest {
             array.add(json1);
 
 
-            export.appendData(columns,array);
+            export.appendData(columns,array, false, "sheet1", 0, 3);
             byte[] data= export.getBytes();
             export.close();
-            FileUtil.writeFile(filepath,data);
+            FileUtil.writeFile(outfilepath,data);
         }
         catch (Exception e)
         {

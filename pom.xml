@@ -6,7 +6,7 @@
 
     <groupId>com.github.tianjing</groupId>
     <artifactId>tgtools.excel</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <url>https://github.com/tianjing/tgtools.activiti.dm</url>
@@ -78,6 +78,12 @@
             <groupId>com.github.tianjing</groupId>
             <artifactId>tgtools.web</artifactId>
             <version>1.0.326</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>tgtools</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
