@@ -28,7 +28,7 @@ public class ExportExcelImplTest {
             String filepath = "C:\\Users\\tian_\\Desktop\\221.xls";
             String outfilepath = "C:\\Users\\tian_\\Desktop\\222.xls";
             ExportExcelImpl export = new ExportExcelImpl();
-            export.init(new File(filepath));
+            export.init(ExportExcelImpl.VERSION_EXCEL2007);
             LinkedHashMap<String,String> columns=new LinkedHashMap<String,String>();
             columns.put("ID","主键");
             columns.put("NAME","名称");

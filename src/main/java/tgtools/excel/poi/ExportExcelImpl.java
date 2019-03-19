@@ -10,10 +10,7 @@ import tgtools.excel.listener.event.ExcelCompletedEvent;
 import tgtools.excel.listener.event.ExportExcelEvent;
 import tgtools.exceptions.APPErrorException;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -43,8 +40,16 @@ public class ExportExcelImpl implements ExportExcel {
         createWorkbook(pFile);
     }
 
+    @Override
+    public void init(InputStream pInputStream,String pVersion) throws APPErrorException {
+        createWorkbook(pInputStream,pVersion);
+    }
+    @Override
+    public void init(byte[] pBytes,String pVersion) throws APPErrorException {
+        createWorkbook(pBytes,pVersion);
+    }
 
-    /**
+    /**ExportExcelImpl
      * 创建excel对象
      *
      * @throws Exception
@@ -63,6 +68,32 @@ public class ExportExcelImpl implements ExportExcel {
      */
     protected void createWorkbook(File pFile) throws APPErrorException {
         mWorkbook = WorkbookFactory.createWorkbook(pFile);
+        CreateWorkbookEvent event = new CreateWorkbookEvent();
+        event.setData(mDatas);
+        event.setWorkbook(mWorkbook);
+        onCreateWorkbook(event);
+    }
+
+    /**
+     * 创建excel对象
+     *
+     * @throws Exception
+     */
+    protected void createWorkbook(InputStream pInputStream,String pVersion) throws APPErrorException {
+        mWorkbook = WorkbookFactory.createWorkbook(pInputStream,pVersion);
+        CreateWorkbookEvent event = new CreateWorkbookEvent();
+        event.setData(mDatas);
+        event.setWorkbook(mWorkbook);
+        onCreateWorkbook(event);
+    }
+
+    /**
+     * 创建excel对象
+     *
+     * @throws Exception
+     */
+    protected void createWorkbook(byte[] pBytes,String pVersion) throws APPErrorException {
+        mWorkbook = WorkbookFactory.createWorkbook(pBytes,pVersion);
         CreateWorkbookEvent event = new CreateWorkbookEvent();
         event.setData(mDatas);
         event.setWorkbook(mWorkbook);
