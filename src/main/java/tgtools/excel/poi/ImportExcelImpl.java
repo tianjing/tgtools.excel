@@ -259,7 +259,12 @@ public class ImportExcelImpl implements ImportExcel {
                     cellValue=String.valueOf(pCell.getNumericCellValue());
                 }
                 if (cellValue.indexOf(".") < 0) {
-                    return Integer.parseInt(cellValue);
+                    try {
+                        return Integer.parseInt(cellValue);
+                    }catch (Exception e)
+                    {
+                        return Long.parseLong(cellValue);
+                    }
                 }
                 if (!StringUtil.isNullOrEmpty(cellValue) && (cellValue.indexOf("E+") > 0 || cellValue.indexOf("E-") > 0)) {
                     cellValue = getFixNumericValue(pCell, cellValue);
@@ -348,6 +353,10 @@ public class ImportExcelImpl implements ImportExcel {
                         }
                         Object value = "";
                         try {
+                            if(r==19&&c==4)
+                            {
+                                System.out.println("fddd");
+                            }
                             value = getCellValue(sheet.getRow(r).getCell(c));
                             LogHelper.info("", "正在解析行：" + r + "正在解析列：" + c + "标题：" + titleRow.getCell(c).getStringCellValue() + "；值：" + value, "");
                         } catch (Exception ex) {
@@ -557,30 +566,75 @@ public class ImportExcelImpl implements ImportExcel {
     }
 
     public static void main(String[] args) {
-        String filepath = "C:\\tianjing\\Desktop\\科技项目入账记录簿.xlsx";
+        String filepath = "C:\\Users\\tian_\\Desktop\\业务联系电话.xls";
         ImportExcelImpl importExcel = new ImportExcelImpl();
         LinkedHashMap<String, String> columns = new LinkedHashMap<String, String>();
-        columns.put("XH", "序号");
-        columns.put("SJ", "时间");
-        columns.put("XMMC", "项目名称");
-        columns.put("KMFL", "科目分类");
-        columns.put("KMXF", "科目细分");
-        columns.put("JE", "金额");
-        columns.put("SL", "税率");
-        columns.put("SE", "税额");
-        columns.put("JSHJ", "价税合计");
-        columns.put("FPHM", "发票号码");
-        columns.put("SKRMC", "收款人名称");
-        columns.put("KHH", "开户行");
-        columns.put("YHZH", "银行账户");
-        columns.put("CS", "处室");
-        columns.put("JBR", "经办人");
-        columns.put("BZ", "备注");
+        columns.put("DW", "单位");
+        columns.put("SJ", "值班电话");
+        columns.put("XMMC", "班组驻地电话");
+        columns.put("KMFL", "外线");
+        columns.put("KMXF", "联系人及联系方式");
+//        columns.put("JE", "金额");
+//        columns.put("SL", "税率");
+//        columns.put("SE", "税额");
+//        columns.put("JSHJ", "价税合计");
+//        columns.put("FPHM", "发票号码");
+//        columns.put("SKRMC", "收款人名称");
+//        columns.put("KHH", "开户行");
+//        columns.put("YHZH", "银行账户");
+//        columns.put("CS", "处室");
+//        columns.put("JBR", "经办人");
+//        columns.put("BZ", "备注");
         HashMap<String, String> table = new HashMap<String, String>();
         table.put("sheet1", "MQ_SYS.ACT_ID_USER");
         //默认不做数据库操作 之转换成json
-        importExcel.init(columns, table,null,0,1);
+        importExcel.init(columns, table,null,1,2);
+        importExcel.setListener(new ImportListener(){
 
+            @Override
+            public void onCreateWorkbook(CreateWorkbookEvent pEvent) {
+
+            }
+
+            @Override
+            public void onCompleted(ExcelCompletedEvent pEvent) {
+
+            }
+
+            @Override
+            public void onLoadFilter(ImportEvent pEvent) {
+
+            }
+
+            @Override
+            public void onGetAtted(ImportEvent pEvent) {
+
+            }
+
+            @Override
+            public void onGetValue(ImportEvent pEvent) {
+                System.out.println(pEvent.getValue());
+                if("18651244052".equals(pEvent.getValue()))
+                {
+                    System.out.println(pEvent.getValue());
+                }
+            }
+
+            @Override
+            public void onExcuteSQL(ImportEvent pEvent) {
+
+            }
+
+            @Override
+            public void onReadSheet(ReadSheetEvent pEvent) {
+
+            }
+
+            @Override
+            public void onSheetParsed(SheetParsedEvent pEvent) {
+
+            }
+        });
         //设置数据库类型后进行sql 操作
         //importExcel.init(columns, table,"dm");
         try {
