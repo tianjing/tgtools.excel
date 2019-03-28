@@ -431,7 +431,7 @@ public class ImportExcelImpl implements ImportExcel {
             for (Map.Entry<String, ArrayNode> item : mParseData.entrySet()) {
                 ArrayNode table = item.getValue();
                 count += table.size();
-                String tablename = mTableNames.get(i);
+                String tablename = getTableName(mTableNames.get(i));
                 for (int rownum = 0; rownum < table.size(); rownum++) {
                     JsonNode row = table.get(rownum);
                     try {
@@ -467,6 +467,14 @@ public class ImportExcelImpl implements ImportExcel {
         } catch (Exception ex) {
             throw new APPErrorException("解析excel错误，原因：" + ex.getMessage(), ex);
         }
+    }
+    protected String getTableName(String pSheetName)
+    {
+        if(!StringUtil.isNullOrEmpty(pSheetName)&&mSheetTable.containsKey(pSheetName))
+        {
+            return mSheetTable.get(pSheetName);
+        }
+        return pSheetName;
     }
     private int execute(String sql) throws APPErrorException {
         sql = tgtools.util.SqlStrHelper.processKeyWord(sql);
@@ -566,14 +574,14 @@ public class ImportExcelImpl implements ImportExcel {
     }
 
     public static void main(String[] args) {
-        String filepath = "C:\\Users\\tian_\\Desktop\\业务联系电话.xls";
+        String filepath = "C:\\Users\\tian_\\Desktop\\fda.xlsx";
         ImportExcelImpl importExcel = new ImportExcelImpl();
         LinkedHashMap<String, String> columns = new LinkedHashMap<String, String>();
-        columns.put("DW", "单位");
-        columns.put("SJ", "值班电话");
-        columns.put("XMMC", "班组驻地电话");
-        columns.put("KMFL", "外线");
-        columns.put("KMXF", "联系人及联系方式");
+        columns.put("DW", "A");
+        columns.put("SJ", "B");
+        columns.put("XMMC", "C");
+        columns.put("KMFL", "D");
+//        columns.put("KMXF", "联系人及联系方式");
 //        columns.put("JE", "金额");
 //        columns.put("SL", "税率");
 //        columns.put("SE", "税额");
@@ -586,9 +594,9 @@ public class ImportExcelImpl implements ImportExcel {
 //        columns.put("JBR", "经办人");
 //        columns.put("BZ", "备注");
         HashMap<String, String> table = new HashMap<String, String>();
-        table.put("sheet1", "MQ_SYS.ACT_ID_USER");
+        table.put("Sheet1", "MQ_SYS.ACT_ID_USER");
         //默认不做数据库操作 之转换成json
-        importExcel.init(columns, table,null,1,2);
+        importExcel.init(columns, table,"dm",0,1);
         importExcel.setListener(new ImportListener(){
 
             @Override
@@ -639,9 +647,10 @@ public class ImportExcelImpl implements ImportExcel {
         //importExcel.init(columns, table,"dm");
         try {
             importExcel.importExcel(new File(filepath));
-            Map<String, ArrayNode> ds = importExcel.getParseData();
+           // Map<String, ArrayNode> ds = importExcel.getParseData();
+            importExcel.parseExcel();
             importExcel.close();
-            System.out.println(ds);
+            System.out.println("");
         } catch (Exception e) {
             e.printStackTrace();
         }
