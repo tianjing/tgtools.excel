@@ -20,15 +20,20 @@ public class ImportExcelImplTest {
 
     @Test
     public void importExcel_File_Test() {
-        String filepath = "C:\\tianjing\\Desktop\\221.xls";
+        String filepath = "C:\\Users\\tian_\\Desktop\\报修表.xls";
         ImportExcelImpl importExcel =new ImportExcelImpl();
         LinkedHashMap<String,String> columns=new LinkedHashMap<String,String>();
-        columns.put("ID","主键");
-        columns.put("NAME","名称");
-        //columns.put("SEX","性别");
-        columns.put("BIR","生日");
+        columns.put("ID","地址");
+        columns.put("NAME","序号");
+        columns.put("SEX","间隔");
+        columns.put("BIR","设备");
+        columns.put("BIR","遥信名称");
+        columns.put("BIR","信息分类");
+        columns.put("BIR","硬接点");
+        columns.put("BIR","备注");
+
         HashMap<String,String> table=new HashMap<String,String>();
-        table.put("sheet1","MQ_SYS.ACT_ID_USER");
+        table.put("遥信","MQ_SYS.ACT_ID_USER");
         importExcel.init(columns,table);
         try {
             importExcel.setListener(new ImportListener(){
@@ -68,7 +73,7 @@ public class ImportExcelImplTest {
 
                 @Override
                 public void onReadSheet(ReadSheetEvent p_Event) {
-
+                    p_Event.setCancel(!"遥信".equals(p_Event.getSheetName()));
                 }
 
                 @Override
@@ -84,5 +89,7 @@ public class ImportExcelImplTest {
         {
             e.printStackTrace();
         }
+
+
     }
 }
