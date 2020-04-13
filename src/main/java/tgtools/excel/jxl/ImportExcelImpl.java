@@ -259,7 +259,7 @@ public class ImportExcelImpl implements ImportExcel {
                             event.setRowIndex(r);
                             event.setColumnIndex(c);
                             event.setValue(value);
-
+                            event.setSheet(sheet);
                             onGetValue(event);
 
                             value = event.getValue();

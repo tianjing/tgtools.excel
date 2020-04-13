@@ -23,6 +23,8 @@ public class ImportEvent extends Event {
     private List<String> mFilterValues;
     private boolean mIsSucess=false;
     private String mSql=null;
+    private Object mSheet=null;
+
 
     public JsonNode getRow() {
         return mRow;
@@ -110,5 +112,13 @@ public class ImportEvent extends Event {
 
     public void setSql(String pSql) {
         mSql = pSql;
+    }
+
+    public Object getSheet() {
+        return mSheet;
+    }
+
+    public void setSheet(Object pSheet) {
+        mSheet = pSheet;
     }
 }

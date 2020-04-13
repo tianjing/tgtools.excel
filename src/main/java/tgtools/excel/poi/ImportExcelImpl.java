@@ -353,10 +353,6 @@ public class ImportExcelImpl implements ImportExcel {
                         }
                         Object value = "";
                         try {
-                            if(r==19&&c==4)
-                            {
-                                System.out.println("fddd");
-                            }
                             value = getCellValue(sheet.getRow(r).getCell(c));
                             LogHelper.info("", "正在解析行：" + r + "正在解析列：" + c + "标题：" + titleRow.getCell(c).getStringCellValue() + "；值：" + value, "");
                         } catch (Exception ex) {
@@ -368,7 +364,7 @@ public class ImportExcelImpl implements ImportExcel {
                             event.setRowIndex(r);
                             event.setColumnIndex(c);
                             event.setValue(value);
-
+                            event.setSheet(sheet);
                             onGetValue(event);
 
                             value = event.getValue();

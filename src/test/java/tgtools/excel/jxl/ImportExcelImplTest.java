@@ -1,5 +1,7 @@
 package tgtools.excel.jxl;
 
+import jxl.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.junit.Test;
 import tgtools.excel.listener.ImportListener;
 import tgtools.excel.listener.event.*;
@@ -15,13 +17,14 @@ public class ImportExcelImplTest {
 
     @Test
     public void importExcel_File_Test() {
-        String filepath = "C:\\tianjing\\github\\tgtools.excel\\fda.xls";
+        String filepath = "C:\\Users\\tian_\\Desktop\\vcda.xls";
         ImportExcelImpl importExcel = new ImportExcelImpl();
         LinkedHashMap<String, String> columns = new LinkedHashMap<String, String>();
-        columns.put("DW", "DW");
-        columns.put("SJ", "SJ");
-        columns.put("XMMC", "XMMC");
-        columns.put("KMFL", "KMFL");
+        columns.put("A", "A");
+        columns.put("B", "B");
+        columns.put("C", "C");
+        columns.put("D", "D");
+        columns.put("E", "E");
 
         HashMap<String, String> table = new HashMap<String, String>();
         table.put("Sheet1", "MQ_SYS.ACT_ID_USER");
@@ -52,7 +55,15 @@ public class ImportExcelImplTest {
 
             @Override
             public void onGetValue(ImportEvent pEvent) {
-                System.out.println(pEvent.getValue());
+                if (((Sheet) pEvent.getSheet()).getRowView(pEvent.getRowIndex()).isHidden()) {
+                    System.out.println(pEvent.getRowIndex() + "行被隐藏");
+                }
+
+                if (((Sheet) pEvent.getSheet()).getColumnView(pEvent.getColumnIndex()).isHidden()) {
+                    System.out.println(pEvent.getColumnIndex() + "列被隐藏");
+                }
+
+                System.out.println();
             }
 
             @Override
